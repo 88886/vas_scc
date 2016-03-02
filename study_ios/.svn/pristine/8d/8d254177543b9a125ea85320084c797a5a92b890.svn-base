@@ -1,0 +1,411 @@
+ //
+//  UserInfoViewController.m
+//  study
+//
+//  Created by mijibao on 15/9/20.
+//  Copyright (c) 2015年 jzkj. All rights reserved.
+//
+
+#import "UserInfoViewController.h"
+#import "UserInfoList.h"
+#import "UserInfoTableViewCell.h"
+#import "YSHYClipViewController.h"
+#import "UploadFileCore.h"
+#import "UserInfoCore.h"
+#import "NicknameViewController.h"
+#import "ChangeAccountViewController.h"
+#import "LocationViewController.h"
+
+
+#import "ImageRequestCore.h"
+
+@interface UserInfoViewController ()<UIImagePickerControllerDelegate,UINavigationControllerDelegate,ClipViewControllerDelegate>
+
+@end
+
+@implementation UserInfoViewController
+{
+    NSString *_sectionIdentifier;
+    NSArray *_firstSectionSignArr;
+    NSArray *_firstSectionTextArr;
+    NSArray *_secondSectionSignArr;
+    NSArray *_secondSectionTextArr;
+    UITableView *_userInfoTabelView;
+    UIImagePickerController * _imagePicker;
+    UIButton * _btn;
+    ClipType _clipType;//裁剪类型
+    UIButton * _circleBtn;
+    UIButton * _squareBtn;
+    UITextField * _textField;
+    CGFloat _radius;
+    UIActionSheet *_sheet;
+    UIImagePickerController * _picker;
+    UIView *_genderView;//修改性别覆盖视图
+    UIView *_gradeView;//修改年级覆盖视图
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.title = @"个人信息";
+    self.navigationController.navigationBarHidden = NO;
+    self.navigationController.navigationBar.translucent = NO;
+    self.tabBarController.tabBar.hidden = YES;
+    _sectionIdentifier = @"sectionIdentify";
+    [self creatUI];
+    // Do any additional setup after loading the view.
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBarHidden = NO;
+    [self getUserInfomation];
+    [_userInfoTabelView reloadData];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+}
+
+- (void)creatUI
+{
+    _userInfoTabelView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, Main_Width, Main_Height - 64)style:UITableViewStyleGrouped];
+    _userInfoTabelView.backgroundColor = UIColorFromRGB(0xe2e2e2);
+    [_userInfoTabelView registerClass:[UserInfoTableViewCell class] forCellReuseIdentifier:_sectionIdentifier];
+    _userInfoTabelView.delegate = self;
+    _userInfoTabelView.dataSource = self;
+    _userInfoTabelView.scrollEnabled = YES;
+    [_userInfoTabelView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    [self.view addSubview:_userInfoTabelView];
+}
+
+#pragma mark UITableViewDelegate
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 2;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    if (section == 0) {
+        return [_firstSectionSignArr count];
+    }else{
+        return [_secondSectionSignArr count];
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UserInfoTableViewCell *cell = (UserInfoTableViewCell *)[tableView dequeueReusableCellWithIdentifier:_sectionIdentifier];
+    if (cell == nil)
+    {
+        cell = [[UserInfoTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:_sectionIdentifier];
+    }
+    if (indexPath.section == 0) {
+        if (indexPath.row == 0) {
+            [ImageRequestCore requestImageWithPath:[UserInfoList loginUserPhoto] withImageView:cell.headView placeholderImage:nil];
+            cell.headView.tag = 10001;
+        }
+        cell.signLabel.text = _firstSectionSignArr[indexPath.row];
+        cell.infoLabel.text = _firstSectionTextArr[indexPath.row];
+    }else{
+        cell.signLabel.text = _secondSectionSignArr[indexPath.row];
+        cell.infoLabel.text = _secondSectionTextArr[indexPath.row];
+    }
+    cell.backgroundColor = [UIColor whiteColor];
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+    return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 40;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 10;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
+{
+    return 0.1;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (indexPath.section == 0){
+        switch (indexPath.row) {
+            case 0:
+            {
+               //点击的是用户头像一栏
+                [self clickedUserHeadCell:indexPath];
+            }
+                break;
+            case 1:
+            {//点击的是用户昵称一栏
+                NicknameViewController *nameView = [[NicknameViewController alloc] init];
+                [self.navigationController pushViewController:nameView animated:YES];
+                
+            }
+                break;
+            case 2:
+            {//点击的是用户账号一栏
+                ChangeAccountViewController *account = [[ChangeAccountViewController alloc] init];
+                [self.navigationController pushViewController:account animated:YES];
+            }
+            default:
+                break;
+        }
+    }else if (indexPath.section == 1){
+        if ([[UserInfoList loginUserType] isEqualToString:@"S"]) {
+           //如果是学生
+            switch (indexPath.row) {
+                case 0:
+                {//点击的是性别
+                    [self creatGenderView];
+                }
+                    break;
+                case 1:
+                {//点击的是年级
+                    [self creatGradeView];
+                    
+                }
+                    break;
+                case 2:
+                {//点击的是地区
+                    LocationViewController *location = [[LocationViewController alloc] init];
+                    [self.navigationController pushViewController:location animated:YES];
+                }
+                    break;
+                case 3:
+                {//点击的是个人签名
+                    
+                }
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+#pragma mark 点击头像
+-(void)clickedUserHeadCell:(NSIndexPath *)indexpath
+{
+    _sheet = [[UIActionSheet alloc]
+             initWithTitle:nil
+             delegate:self
+             cancelButtonTitle:@"取消"
+             destructiveButtonTitle:nil
+             otherButtonTitles:@"拍照", @"本地上传", nil];
+    [_sheet setTintColor:[UIColor blackColor]];
+    _sheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
+    [_sheet showInView:self.view];
+    //点击头像，调用系统相机和相册
+    _picker = [[UIImagePickerController alloc] init];
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    _picker = [[UIImagePickerController alloc] init];
+    if (buttonIndex == 0) {
+        //点击的是拍照
+        _picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+        _picker.delegate = self;
+        [self presentViewController:_picker animated:YES completion:nil];
+    }else if (buttonIndex == 1){
+        //点击的是本地上传
+        _picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+        _picker.delegate = self;
+        [self presentViewController:_picker animated:YES completion:nil];
+    }
+}
+
+#pragma mark 图片拾取器代理事件
+-(void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+    //点击相机的使用照片和相册中的某一张图片，执行以下代理事件
+    UIImage * image = info[@"UIImagePickerControllerOriginalImage"];
+    NSLog(@"%ld",(long)image.imageOrientation);
+    
+    YSHYClipViewController * clipView = [[YSHYClipViewController alloc] initWithImage:image];
+    clipView.delegate = self;
+    clipView.clipType = SQUARECLIP; //支持圆形:CIRCULARCLIP 方形裁剪:SQUARECLIP   默认:圆形裁剪
+    if(![_textField.text isEqualToString:@""])
+    {
+        _radius =_textField.text.intValue;
+        clipView.radius = 120;   //设置 裁剪框的半径  默认150
+    }
+    //    clipView.scaleRation = 2;// 图片缩放的最大倍数 默认为3
+    [picker pushViewController:clipView animated:YES];
+}
+
+#pragma mark ClipViewControllerDelegate（图片裁剪回调）
+-(void)ClipViewController:(YSHYClipViewController *)clipViewController FinishClipImage:(UIImage *)editImage
+{
+    [clipViewController dismissViewControllerAnimated:YES completion:^{
+        UploadFileCore *uploadFileCore = [[UploadFileCore alloc] init];
+        uploadFileCore.delegate = self;
+        NSData *imageData = UIImageJPEGRepresentation(editImage,1.0);
+        [uploadFileCore uploadFileArray:@[imageData] lastIsAudio:NO];
+    }];
+}
+
+#pragma mark 点击性别
+- (void)creatGenderView
+{
+    _genderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, Main_Width, Main_Height)];
+    _genderView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
+    _genderView.userInteractionEnabled = YES;
+    UITapGestureRecognizer *cancelGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelGenderView)];
+    [_genderView addGestureRecognizer:cancelGesture];
+    UIView *choseView = [[UIView alloc] initWithFrame:CGRectMake(0, Main_Height - 90, Main_Width, 90)];
+    choseView.backgroundColor = [UIColor whiteColor];
+    NSArray *genArr = @[@"男", @"女"];
+    for (int i = 0;  i < 2; i ++) {
+        UIButton *genderBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, i * 45, Main_Width, 45)];
+        [genderBtn setTitle:genArr[i] forState:UIControlStateNormal];
+        [genderBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [genderBtn setTitleFont:[UIFont systemFontOfSize:14]];
+        [genderBtn addTarget:self action:@selector(changeGender:) forControlEvents:UIControlEventTouchUpInside];
+        genderBtn.tag = 1000 + i;
+        [choseView addSubview:genderBtn];
+    }
+    UIView *line = [[UIView alloc] initWithFrame:CGRectMake(0, 44, Main_Width, 2)];
+    line.backgroundColor = UIColorFromRGB(0xe2e2e2);
+    [choseView addSubview:line];
+    [_genderView addSubview:choseView];
+    [_genderView bringSubviewToFront:choseView];
+    [self.view.window addSubview:_genderView];
+}
+
+- (void)cancelGenderView
+{
+    [_genderView removeFromSuperview];
+}
+
+#pragma mark 点击年级
+- (void)creatGradeView
+{
+    _gradeView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, Main_Width, Main_Height)];
+    _gradeView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
+    _gradeView.userInteractionEnabled = YES;
+    UIView *choseView = [[UIView alloc] initWithFrame:CGRectMake(0, Main_Height - 197.5, Main_Width, 197.5)];
+    choseView.backgroundColor = [UIColor whiteColor];
+    NSArray *gradeArr = @[@"一年级", @"二年级", @"三年级", @"四年级", @"五年级", @"六年级", @"初一", @"初二", @"初三", @"高一", @"高二", @"高三"];
+    for (int i = 0;  i < 12; i ++) {
+        UIButton *gradeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        if (i < 4) {
+            gradeBtn.frame = CGRectMake(20 + i * (50 + (Main_Width - 240)/3), 23.75, 50, 17.5);
+        }else if (i < 8 && i > 3){
+            gradeBtn.frame = CGRectMake(20 + (i - 4) * (50 + (Main_Width - 240)/3), 65, 50, 17.5);
+        }else{
+            gradeBtn.frame = CGRectMake(20 + (i - 8) * (50 + (Main_Width - 240)/3), 106.25, 50, 17.5);
+        }
+        [gradeBtn setTitle:gradeArr[i] forState:UIControlStateNormal];
+        [gradeBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [gradeBtn setTitleFont:[UIFont systemFontOfSize:14]];
+        [gradeBtn addTarget:self action:@selector(changeGrade:) forControlEvents:UIControlEventTouchUpInside];
+        [gradeBtn.layer setMasksToBounds:YES];
+        [gradeBtn.layer setBorderWidth:2];
+        [gradeBtn.layer setBorderColor: (__bridge CGColorRef _Nullable)([UIColor redColor])];
+         gradeBtn.tag = 10000 + i;
+        [choseView addSubview:gradeBtn];
+    }
+    UIView *line = [[UIView alloc] initWithFrame:CGRectMake(0, 147.5, Main_Width, 5)];
+    line.backgroundColor = UIColorFromRGB(0xe2e2e2);
+    [choseView addSubview:line];
+    [_gradeView addSubview:choseView];
+    UIButton *cancelBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, MaxY(line), Main_Width, 45)];
+    [cancelBtn setTitle:@"取消" forState:UIControlStateNormal];
+    [cancelBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [cancelBtn setTitleFont:[UIFont systemFontOfSize:14]];
+    [cancelBtn addTarget:self action:@selector(cancelGraderView) forControlEvents:UIControlEventTouchUpInside];
+    [choseView addSubview:cancelBtn];
+    [self.view.window addSubview:_gradeView];
+}
+
+- (void)cancelGraderView
+{
+    [_gradeView removeFromSuperview];
+}
+
+- (void)changeGrade:(UIButton *)btn
+{
+    [self cancelGraderView];
+    NSString *grade = btn.titleLabel.text;
+    UserInfoCore *core = [[UserInfoCore alloc] init];
+    core.delegate = self;
+    [core changeUserInfomationWithUserId:[UserInfoList loginUserId] newInfomation:grade infoKey:@"grade" saveKey:[AccountManeger loginUserGrade]];
+}
+#pragma mark UploadDelegate(文件上传回调)
+- (void)uploadResultByArray:(NSArray *)returnPath
+{
+    if (!returnPath || ![returnPath count] || [returnPath count] == 0) {
+        [self showMessage:@"服务器请求失败"];
+    }else{
+        UserInfoCore *core = [[UserInfoCore alloc] init];
+        core.delegate = self;
+        [core changeUserInfomationWithUserId:[UserInfoList loginUserId] newInfomation:returnPath[0] infoKey:@"photo" saveKey:[AccountManeger loginUserPhoto]];
+    }
+}
+
+#pragma mark UserInfoCoreDelegate（修改信息回调）
+- (void)passChangeResult:(NSString *)result
+{
+    NSString *message = [[NSString alloc] init];
+    if ([result isEqualToString:@"1"]) {
+        message = @"修改成功";
+        [self getUserInfomation];
+        [_userInfoTabelView reloadData];
+    }else{
+        message = @"修改失败";
+    }
+    [self showMessage:message];
+}
+
+- (void)changeGender:(UIButton *)btn
+{
+    NSString *newGender = [[NSString alloc] init];
+    if (btn.tag == 1000) {//点击的是男
+        newGender = @"M";
+    }else if (btn.tag == 1001){//点击的是女
+        newGender = @"F";
+    }
+    [_genderView removeFromSuperview];
+    UserInfoCore *core = [[UserInfoCore alloc] init];
+    core.delegate = self;
+    [core changeUserInfomationWithUserId:[UserInfoList loginUserId] newInfomation:newGender infoKey:@"gender" saveKey:[AccountManeger loginUserGender]];
+}
+
+- (void)getUserInfomation
+{
+    _firstSectionSignArr = @[@"头像", @"名字", @"账号"];
+    _firstSectionTextArr = @[@"", [UserInfoList loginUserNickname], [UserInfoList loginUserPhone]];
+    NSString *cityString = [NSString stringWithFormat:@"%@%@", [UserInfoList loginUserProvince], [UserInfoList loginUserCity]];
+    NSString *sexString = ([[UserInfoList loginUserGender] isEqualToString: @"M"]) ? @"男": @"女";
+    if ([[UserInfoList loginUserType] isEqualToString:@"S"] ) {
+        //如果是学生
+        _secondSectionSignArr = @[@"性别", @"年级", @"地区", @"个性签名"];
+        _secondSectionTextArr = @[sexString, [UserInfoList loginUserGrade], cityString, [UserInfoList loginUserSignature]];
+    }else{
+        //如果是老师
+        _secondSectionSignArr = @[@"性别", @"教龄", @"地区", @"擅长科目", @"在职院校", @"所获荣誉", @"个性签名"];
+        _secondSectionTextArr = @[sexString, @"", cityString, @"", @"", @"",[UserInfoList loginUserSignature]];
+    }
+}
+@end

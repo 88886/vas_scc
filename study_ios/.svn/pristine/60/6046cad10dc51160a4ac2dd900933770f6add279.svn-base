@@ -1,0 +1,34 @@
+//
+//  KnowledgeCollectionViewCell.m
+//  study
+//
+//  Created by mijibao on 16/1/20.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "KnowledgeCollectionViewCell.h"
+#import <UIImageView+AFNetworking.h>
+@implementation KnowledgeCollectionViewCell
+
+- (id)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        NSArray *array = [[NSBundle mainBundle] loadNibNamed:@"View" owner:self options:nil];
+        self = array[0];
+        self.layer.cornerRadius = 5.0f;
+    }
+    return self;
+}
+
+-(void)configLectrueTableViewCell:(LectureModel *)model
+{
+    NSURL *picUrl = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@/studyManager%@",SERVER_ADDRESS,model.picurl]];
+    [_videoImageView setImageWithURL:picUrl placeholderImage:[UIImage imageNamed:@"placeholder"]];
+    
+    _titleLabel.text = model.title;
+    
+    _contentLabel.text = [NSString stringWithFormat:@"%@ %@",model.grade,model.subject];//@"高一  数学";
+    _subjectImageView.image = [UIImage imageNamed:model.subject];
+    
+}
+@end

@@ -1,0 +1,16 @@
+//
+//  LoginViewController.h
+//  study
+//
+//  Created by mijibao on 15/9/2.
+//  Copyright (c) 2015年 jzkj. All rights reserved.
+//
+#import <UIKit/UIKit.h>
+#import "LoginCore.h"
+
+@interface LoginViewController : BaseViewController<UITextFieldDelegate,UIAlertViewDelegate,LoginCoreDelegate>
+
+@property (copy, nonatomic) NSString *userName;//用户账号
+@property (copy, nonatomic) NSString *userPass;//用户密码
+
+@end

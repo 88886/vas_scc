@@ -1,0 +1,70 @@
+//
+//  KnowledgeDetailViewController.m
+//  study
+//
+//  Created by mijibao on 16/1/21.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "KnowledgeDetailViewController.h"
+#import "KnowledgeDetailView.h"
+#import "LectureNetCore.h"
+#import <Masonry.h>
+
+@interface KnowledgeDetailViewController ()<LectureNetCoreDelegate>
+
+@property (nonatomic, strong) LectureDetailModel *detailModel;
+
+
+@end
+
+@implementation KnowledgeDetailViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    [self creatViewUI];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [self creatNavigationUI];
+}
+
+- (void)creatNavigationUI {
+    //设置导航栏背景
+    self.title = @"重点知识";
+    self.navigationController.navigationBar.barTintColor = [UIColor blackColor];
+    self.navigationController.navigationBar.translucent = NO;
+    self.tabBarController.tabBar.hidden = YES;
+    [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -60)
+                                                         forBarMetrics:UIBarMetricsDefault];
+}
+
+- (void)creatViewUI {
+    KnowledgeDetailView *knowledgeDetailView = [[KnowledgeDetailView alloc] initWithFrame:self.view.frame];
+    knowledgeDetailView.titleName = self.titleName;
+    knowledgeDetailView.lecrureid = self.lecrureid;
+    [self.view addSubview:knowledgeDetailView];
+    _detailModel = [[LectureDetailModel alloc] init];
+}
+
+
+
+#pragma -mark 布局
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

@@ -1,0 +1,27 @@
+//
+//  LectureDetailModel.h
+//  study
+//
+//  Created by apples on 15/9/7.
+//  Copyright (c) 2015年 jzkj. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface LectureDetailModel : NSObject
+
+@property (nonatomic,copy)NSString *addtime;
+@property (nonatomic,copy)NSString *content;
+@property (nonatomic,copy)NSString *duration;
+@property (nonatomic,copy)NSString *expriretime;
+@property (nonatomic,copy)NSString *grade;
+@property (nonatomic,copy)NSString *subject;
+@property (nonatomic,copy)NSString *lecturer;
+@property (nonatomic,copy)NSString *picurl;
+@property (nonatomic,copy)NSString *price;
+@property (nonatomic,copy)NSString *source;
+@property (nonatomic,copy)NSString *url;//下载地址
+@property (nonatomic,copy)NSString *buyYOrN;
+@property (nonatomic,copy)NSString *collectYOrN;
+
+@end

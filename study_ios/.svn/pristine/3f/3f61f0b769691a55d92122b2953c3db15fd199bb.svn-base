@@ -1,0 +1,126 @@
+//
+//  commentHeaderView.m
+//  study
+//
+//  Created by mijibao on 16/1/25.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "CommentHeaderView.h"
+#import "CommentModel.h"
+#import "LectureNetCore.h"
+#import <UIImageView+AFNetworking.h>
+#import <Masonry.h>
+#import "ALMoviePlayerController.h"
+
+@interface CommentHeaderView()<LectureNetCoreDelegate,ALMoviePlayerControllerDelegate>
+
+@property (weak, nonatomic) IBOutlet UIImageView *videoImageView; //视频
+@property (weak, nonatomic) IBOutlet UILabel *contentLabel; //内容简介
+@property (weak, nonatomic) IBOutlet UIButton *praiseBtn;  //点赞
+@property (weak, nonatomic) IBOutlet UIButton *transmitBtn; //转发
+@property (weak, nonatomic) IBOutlet UIButton *shareBtn; //分享
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *contentHeight; //内容简介高度
+@property (nonatomic, strong) LectureNetCore *lectureNetCore; //网络请求
+@property (nonatomic, strong) ALMoviePlayerController *moviePlayer;  //视频播放器
+
+
+@end
+
+@implementation CommentHeaderView
+
+- (id)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        self = [[[NSBundle mainBundle] loadNibNamed:@"KView" owner:self options:nil]objectAtIndex:3];
+        self.frame = frame;
+        [self setupMoviewplayer];
+    }
+    return self;
+}
+
+//model 赋值
+- (void)setDetailModel:(LectureDetailModel *)detailModel {
+    //
+//    if (![JZCommon isBlankString:detailModel.picurl]) {
+//        [_videoImageView setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@/studyManager%@",SERVER_ADDRESS,detailModel.picurl]] placeholderImage:[UIImage imageNamed:@"touxiang"]];
+//    }
+    //播放器
+    if (![JZCommon isBlankString:detailModel.url]) {
+        [_videoImageView setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@/studyManager%@",SERVER_ADDRESS,detailModel.picurl]] placeholderImage:[UIImage imageNamed:@"placeholder"]];
+        //视频资源
+        NSURL *videoFileURL = [NSURL URLWithString:[NSString stringWithFormat:@"http://202.85.218.51:8090/studyManager%@",detailModel.url]];
+        [self.moviePlayer setContentURL:videoFileURL];
+        double delayInSeconds = 0.3;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+//            [self configureViewForOrientation:[UIApplication sharedApplication].statusBarOrientation];
+            [UIView animateWithDuration:0.3 delay:0.0 options:0 animations:^{
+                self.moviePlayer.view.alpha = 1.f;
+            } completion:^(BOOL finished) {
+//                self.navigationItem.leftBarButtonItem.enabled = YES;
+//                self.navigationItem.rightBarButtonItem.enabled = YES;
+            }];
+        });
+    }
+    //内容简介
+    if (![JZCommon isBlankString:detailModel.content]) {
+        _contentLabel.text = detailModel.content;
+        NSDictionary *attribute = @{NSFontAttributeName:[UIFont systemFontOfSize:13]};
+        CGRect frame = [_contentLabel.text boundingRectWithSize:CGSizeMake(WIDTH(_contentLabel), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:attribute context:nil];
+        _contentHeight.constant = CGRectGetHeight(frame) + 13;
+        CGRect newFrame = self.frame;
+        newFrame.size.height = 270 + _contentHeight.constant;
+        self.frame = newFrame;
+    }
+    //
+}
+
+#pragma mark --- 自定义播放器
+-(void)setupMoviewplayer
+{
+    self.moviePlayer = [[ALMoviePlayerController alloc] initWithFrame:CGRectMake(0, 0, Main_Width - 20, 207)];
+    self.moviePlayer.view.alpha = 0.f;
+    [_videoImageView addSubview:self.moviePlayer.view];
+    self.moviePlayer.delegate = self;
+    [_moviePlayer.view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.top.bottom.mas_equalTo(_videoImageView);
+    }];
+    //控制面板
+    ALMoviePlayerControls *movieControls = [[ALMoviePlayerControls alloc] initWithMoviePlayer:self.moviePlayer style:ALMoviePlayerControlsStyleDefault];
+    [movieControls setBarColor:[UIColor blackColor]];
+    [movieControls setTimeRemainingDecrements:NO];
+//    [movieControls setFadeDelay:2.0];
+    [movieControls setBarHeight:52 / 2.f];
+    //[movieControls setSeekRate:2.f];
+    //assign controls
+    [self.moviePlayer setControls:movieControls];
+}
+
+// 功能按钮
+- (IBAction)functionBtnClick:(UIButton *)sender {
+    //NSLog(@"分享按钮点击~~");
+    if(!_lectureNetCore) {
+        _lectureNetCore = [[LectureNetCore alloc] init];
+    }
+    if (_lecrureid != nil) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [_lectureNetCore requestBigLessonWithShare:@{@"userId":[UserInfoList loginUserId],@"lecrureId":_lecrureid,@"picurl":_detailModel.picurl,@"duration":_detailModel.duration,@"content":@"分享今日大课视频",@"subject":_detailModel.subject,@"grade":_detailModel.grade,@"visibleRange":@"G",@"addtimeB":_detailModel.addtime,@"titleB":_titleName}];
+        });
+    }
+}
+
+#pragma -mark  ALMoviePlayerControllerDelegate
+- (void)moviePlayerWillMoveFromWindow
+{
+    if (![_videoImageView.subviews containsObject:self.moviePlayer.view])
+        [_videoImageView addSubview:self.moviePlayer.view];
+    
+    [self.moviePlayer setFrame:CGRectMake(0, 0, WIDTH(_videoImageView), HEIGHT(_videoImageView))];  //scc
+}
+
+- (void)movieTimedOut {
+    NSLog(@"MOVIE TIMED OUT");
+}
+
+@end

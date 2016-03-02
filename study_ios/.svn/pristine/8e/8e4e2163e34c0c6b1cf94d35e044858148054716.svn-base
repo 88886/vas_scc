@@ -1,0 +1,36 @@
+//
+//  LoginCore.h
+//  study
+//
+//  Created by mijibao on 15/9/9.
+//  Copyright (c) 2015年 jzkj. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+
+@protocol LoginCoreDelegate <NSObject>
+
+- (void)passLoginResult:(NSString *)result;
+
+@end
+
+@interface LoginCore : NSObject
+
+@property (weak,nonatomic) id<LoginCoreDelegate> delegate;
+
+/**
+ *  登陆请求
+ *
+ *  @param userName  用户账号
+ *  @param password  用户密码
+ *
+ */
+- (void)loginUrlRequestWithName:(NSString *)userName password:(NSString *)useerPassWord;
+
+@end
+
+
+
+
+

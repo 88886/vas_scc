@@ -1,0 +1,107 @@
+//
+//  OnlinePaymentViewController.m
+//  study
+//
+//  Created by mijibao on 16/1/28.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "OnlinePaymentViewController.h"
+#import "PayTableViewCell.h"
+
+@interface OnlinePaymentViewController ()<UITableViewDataSource,UITableViewDelegate>
+@property (nonatomic, strong) NSArray *payArray;  
+
+@end
+
+@implementation OnlinePaymentViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title = @"在线支付";
+    _payArray = @[@"余额支付",@"微信支付",@"支付宝支付",@"QQ钱包支付"];
+    UILabel *contentLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, Main_Width, 40)];
+    contentLabel.text = [NSString stringWithFormat:@"      此课件将收取您¥%@元的费用",self.costMoney];
+    contentLabel.textColor = lightColor;
+    contentLabel.font = [UIFont systemFontOfSize:15];
+    contentLabel.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:contentLabel];
+    
+    UITableView *payTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, MaxY(contentLabel)+20, Main_Width, 190) style:UITableViewStylePlain];
+    payTableView.delegate = self;
+    payTableView.dataSource = self;
+    payTableView.scrollEnabled = NO;
+    payTableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
+    [self.view addSubview:payTableView];
+    UILabel *payView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, Main_Width, 30)];
+    payView.text = @"       支付方式";
+    payView.font = [UIFont systemFontOfSize:11];
+    payView.textColor = RGBVCOLOR(0x656565);
+    payView.backgroundColor = [UIColor whiteColor];
+    [payTableView beginUpdates];
+    payTableView.tableHeaderView = payView;
+    [payTableView endUpdates];
+    //支付按钮
+    UIButton *payBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    payBtn.frame = CGRectMake(0, MaxY(payTableView)+10, Main_Width, 40);
+    [payBtn setTitle:@"确认支付" forState:UIControlStateNormal];
+    payBtn.titleLabel.font = [UIFont systemFontOfSize:14];
+    payBtn.backgroundColor = lightColor;
+    [payBtn addTarget:self action:@selector(payBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:payBtn];
+    // Do any additional setup after loading the view.
+}
+
+// 支付按钮
+- (void)payBtnClick {
+    NSLog(@"确认支付");
+}
+
+#pragma -mark UITableViewDataSource
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *Cell = @"Cell";
+    PayTableViewCell *payCell = [tableView dequeueReusableCellWithIdentifier:Cell];
+    if (!payCell) {
+        payCell = [[PayTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:Cell];
+        payCell.selectionStyle = UITableViewCellSelectionStyleNone;
+    }
+    payCell.pay = _payArray[indexPath.row];
+    return payCell;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    
+    return _payArray.count;
+}
+
+#pragma -mark UITableViewDelegate
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 40;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSIndexPath *lastIndexPath;
+    PayTableViewCell *lastCell = [tableView cellForRowAtIndexPath:lastIndexPath];
+    PayTableViewCell *payCell = [tableView cellForRowAtIndexPath:indexPath];
+    lastCell.select = NO;
+    payCell.select = YES;
+    lastIndexPath = indexPath;
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

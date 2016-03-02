@@ -1,0 +1,228 @@
+//
+//  PartnerInfoViewController.m
+//  study
+//
+//  Created by mijibao on 16/1/21.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "PartnerInfoViewController.h"
+#import "PartnerInfoTableViewCell.h"
+#import "ImageRequestCore.h"
+
+@interface PartnerInfoViewController ()<UITextViewDelegate>
+
+@end
+
+@implementation PartnerInfoViewController
+{
+    UIScrollView *_scrollview;
+    UITableView *_tableView;
+    NSString *_sectionIdentifier;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    _sectionIdentifier = @"_sectionIdentifier";
+    self.title = @"详情信息";
+    [self creatUI];
+    // Do any additional setup after loading the view.
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)creatUI{
+    _scrollview = [[UIScrollView alloc] initWithFrame:CGRectMake(0, -64, Main_Width, Main_Height)];
+    _scrollview.contentSize = CGRectMake(0, 0, Main_Width, 735).size;
+    _scrollview.backgroundColor = UIColorFromRGB(0xe2e2e2);
+    _scrollview.scrollEnabled = YES;
+    [self.view addSubview:_scrollview];
+    //头像及背景图
+    UIImageView *topView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, Main_Width, 232)];
+    [ImageRequestCore requestImageWithPath:[UserInfoList loginUserPicture] withImageView:topView placeholderImage:nil];
+    UIView *headBottom = [[UIView alloc] initWithFrame:CGRectMake((Main_Width - 84) * 0.5, 71, 84, 84)];
+    headBottom.layer.masksToBounds = YES;
+    headBottom.layer.cornerRadius = 42;
+    headBottom.backgroundColor = UIColorFromRGB(0xff7f00);
+    [topView addSubview:headBottom];
+    UIImageView *userHead = [[UIImageView alloc] initWithFrame:CGRectMake(2, 2, 80, 80)];
+    userHead.layer.masksToBounds = YES;
+    userHead.layer.cornerRadius = 40;
+    userHead.backgroundColor = [UIColor clearColor];
+    [ImageRequestCore requestImageWithPath:[UserInfoList loginUserPhoto] withImageView:userHead placeholderImage:nil];
+    [headBottom addSubview:userHead];
+    [_scrollview addSubview:topView];
+    //好评率
+    UILabel *appraiseLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, MaxY(topView), Main_Width/2 - 0.5, 40)];
+    appraiseLabel.backgroundColor = [UIColor whiteColor];
+    NSString *lablString = @"好评率：99.0%";
+    appraiseLabel.attributedText = [JZCommon settingString:lablString withLength:4 firstColor:UIColorFromRGB(0x656565) secondColor:UIColorFromRGB(0xff7f00)];
+    appraiseLabel.font = [UIFont systemFontOfSize:13];
+    appraiseLabel.textAlignment = NSTextAlignmentCenter;
+    [_scrollview addSubview:appraiseLabel];
+    UIView *midLine = [[UIView alloc] initWithFrame:CGRectMake(Main_Width - 0.5, MinY(appraiseLabel) + 5, 1, 30)];
+    midLine.backgroundColor = UIColorFromRGB(0xe2e2e2);
+    [_scrollview addSubview:midLine];
+    //答题数
+    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(Main_Width/2 + 0.5, MaxY(topView), Main_Width/2 - 0.5, 40)];
+    countLabel.backgroundColor = [UIColor whiteColor];
+    NSString *anserString = @"答题数：2223";
+    countLabel.attributedText = [JZCommon settingString:anserString withLength:4 firstColor:UIColorFromRGB(0x656565) secondColor:UIColorFromRGB(0xff7f00)];
+    countLabel.font = [UIFont systemFontOfSize:13];
+    countLabel.textAlignment = NSTextAlignmentCenter;
+    [_scrollview addSubview:countLabel];
+    //地区及擅长科目
+    UIView *secondView = [[UIView alloc] initWithFrame:CGRectMake(0, MaxY(appraiseLabel) + 10, Main_Width, 70)];
+    secondView.backgroundColor = [UIColor whiteColor];
+    [_scrollview addSubview:secondView];
+    NSDictionary *dic = @{NSFontAttributeName:[UIFont systemFontOfSize:13]};
+    NSString *string1 = @"地区：";
+    NSString *string2 = @"擅长科目：";
+    NSString *string3 = @"所获荣誉：";
+    CGSize size2 = [string2 sizeWithAttributes:dic];
+    NSArray *signArray = @[string1, string2, string3];
+    NSString *city = @"湖北 武汉";
+    NSString *lecture = @"数学、物理、化学、生物";
+    NSString *honor = @"2001年荣获百日竞赛销售高手奖;2002年荣获第一季度超越自我奖;2002年荣获展业高手奖;2002年成为中国人寿北京分公司前50名销售精英;2002年荣获中国人寿北京分公司精英俱乐部会员资格;";
+    NSArray *contentArray = @[city, lecture, honor];
+    for (int i = 0; i < 2; i ++) {
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(13, 0 + i * 35, Main_Width - 13, 34)];
+        NSString *lablString = [NSString stringWithFormat:@"%@ %@", signArray[i], contentArray[i]];
+        label.attributedText = [JZCommon settingString:lablString withLength:[signArray[i] length] firstColor:UIColorFromRGB(0x656565) secondColor:UIColorFromRGB(0x8e8e8e)];
+        label.textAlignment = NSTextAlignmentLeft;
+        label.font = [UIFont systemFontOfSize:13];
+        label.backgroundColor = [UIColor whiteColor];
+        UIView *line = [[UIView alloc] initWithFrame:CGRectMake(13, 34* (i +1), Main_Width - 26, 1)];
+        line.backgroundColor = UIColorFromRGB(0xe2e2e2);
+        [secondView addSubview:label];
+        [secondView addSubview:line];
+        [secondView bringSubviewToFront:line];
+    }
+    //所获荣誉
+    CGSize honorSize = [honor sizeWithAttributes:dic];
+    CGFloat t = honorSize.width / (Main_Width - 135);
+    NSInteger num = floor(t);
+    CGFloat height;
+    if (num >= 3) {
+       height = 80;
+    }else{
+       height = (num + 1) * 33;
+    }
+    UIView *thirdView = [[UIView alloc] initWithFrame:CGRectMake(0, MaxY(secondView), Main_Width, height)];
+    thirdView.backgroundColor = [UIColor whiteColor];
+    thirdView.userInteractionEnabled = YES;
+    [_scrollview addSubview:thirdView];
+    _scrollview.userInteractionEnabled = YES;
+    self.view.userInteractionEnabled = YES;
+    UILabel *honorLabel = [[UILabel alloc] initWithFrame:CGRectMake(13, 0, size2.width, 33)];
+    honorLabel.text = @"所获荣誉:";
+    honorLabel.font = [UIFont systemFontOfSize:13];
+    honorLabel.textColor = UIColorFromRGB(0x656565);
+    [thirdView addSubview:honorLabel];
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineSpacing = (33 - size2.height) * 0.5;//行间距
+    NSDictionary *attributes = @{ NSFontAttributeName:[UIFont systemFontOfSize:13], NSParagraphStyleAttributeName:paragraphStyle};
+    UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(size2.width + 13, 0, Main_Width -135, height)];
+    textView.delegate = self;
+    textView.scrollEnabled = YES;
+    textView.userInteractionEnabled = YES;
+    textView.showsVerticalScrollIndicator = NO;
+    textView.showsHorizontalScrollIndicator = NO;
+    textView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
+    textView.attributedText = [[NSAttributedString alloc] initWithString:honor attributes:attributes];
+    textView.textColor = UIColorFromRGB(0x8e8e8e);
+    [thirdView addSubview:textView];
+    //个人动态
+    _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, MaxY(thirdView), Main_Width, 140)];
+    _tableView.backgroundColor = UIColorFromRGB(0xe2e2e2);
+    _tableView.delegate = self;
+    _tableView.dataSource = self;
+    _tableView.scrollEnabled = NO;
+    [_tableView registerClass:[PartnerInfoTableViewCell class] forCellReuseIdentifier:_sectionIdentifier];
+    [_scrollview addSubview:_tableView];
+    
+    NSArray *btnArray = @[@"加为伙伴", @"关注老师", @"我要提问"];
+    for (int i = 0; i < 3; i ++) {
+        UIButton *btn = [[UIButton alloc] initWithFrame:CGRectMake( 0, MaxY(_tableView) + 10 + i *45, Main_Width, 35)];
+        [btn setBackgroundColor:[UIColor whiteColor]];
+        [btn setTitle:btnArray[i] forState:UIControlStateNormal];
+        [btn setTitleColor:UIColorFromRGB(0x656565) forState:UIControlStateNormal];
+        [btn setTitleFont:[UIFont systemFontOfSize:16]];
+        [btn addTarget:self action:@selector(makeChoseWhatTodo:) forControlEvents:UIControlEventTouchUpInside];
+         btn.tag = 1000 + i;
+        [_scrollview addSubview:btn];
+    }
+}
+
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 2;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    PartnerInfoTableViewCell *cell = (PartnerInfoTableViewCell *)[tableView dequeueReusableCellWithIdentifier:_sectionIdentifier];
+    if (cell == nil)
+    {
+        cell = [[PartnerInfoTableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:_sectionIdentifier];
+    }
+    if (indexPath.section == 0) {
+        cell.leftLabel.text = @"个人发布";
+    }else{
+        cell.leftLabel.text = @"教学课程";
+    }
+    cell.backgroundColor = [UIColor whiteColor];
+    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 60;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 10;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
+{
+    return 0.1;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 0) {
+        NSLog(@"点击了个人动态");
+    }else{
+        NSLog(@"点击了教学课程");
+    }
+}
+
+#pragma mark - UITextViewDelegate
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView {
+    return NO;
+}
+
+- (void)makeChoseWhatTodo:(UIButton *)btn{
+    if (btn.tag == 1000) {
+        NSLog(@"点击了加为伙伴");
+    }else if(btn.tag == 1001){
+        NSLog(@"点击了关注老师");
+    }else{
+        NSLog(@"点击了我要提问");
+    }
+}
+@end

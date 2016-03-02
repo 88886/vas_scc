@@ -1,0 +1,70 @@
+//
+//  commentHeaderView.m
+//  study
+//
+//  Created by mijibao on 16/1/25.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "CommentHeaderView.h"
+#import "CommentModel.h"
+#import "LectureNetCore.h"
+#import <UIImageView+AFNetworking.h>
+#import <Masonry.h>
+
+@interface CommentHeaderView()<LectureNetCoreDelegate>
+
+@property (weak, nonatomic) IBOutlet UIImageView *videoImageView; //视频
+@property (weak, nonatomic) IBOutlet UILabel *contentLabel; //内容简介
+@property (weak, nonatomic) IBOutlet UIButton *praiseBtn;  //点赞
+@property (weak, nonatomic) IBOutlet UIButton *transmitBtn; //转发
+@property (weak, nonatomic) IBOutlet UIButton *shareBtn; //分享
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *contentHeight; //内容简介高度
+@property (nonatomic, strong) LectureNetCore *lectureNetCore; //网络请求
+
+
+@end
+
+@implementation CommentHeaderView
+
+- (id)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        self = [[[NSBundle mainBundle] loadNibNamed:@"View" owner:self options:nil]objectAtIndex:3];
+        self.frame = frame;
+    }
+    return self;
+}
+
+//model 赋值
+- (void)setDetailModel:(LectureDetailModel *)detailModel {
+    //头像
+    if (![JZCommon isBlankString:detailModel.picurl]) {
+        [_videoImageView setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@/studyManager%@",SERVER_ADDRESS,detailModel.picurl]] placeholderImage:[UIImage imageNamed:@"touxiang"]];
+    }
+    //内容简介
+    if (![JZCommon isBlankString:detailModel.content]) {
+        _contentLabel.text = detailModel.content;
+        NSDictionary *attribute = @{NSFontAttributeName:[UIFont systemFontOfSize:13]};
+        CGRect frame = [_contentLabel.text boundingRectWithSize:CGSizeMake(WIDTH(_contentLabel), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:attribute context:nil];
+        _contentHeight.constant = CGRectGetHeight(frame)+13;
+        CGRect newFrame = self.frame;
+        newFrame.size.height = 270 + _contentHeight.constant;
+        self.frame = newFrame;
+    }
+    //
+}
+#pragma -mark 功能按钮
+- (IBAction)functionBtnClick:(UIButton *)sender {
+    //NSLog(@"分享按钮点击~~");
+    if(!_lectureNetCore) {
+        _lectureNetCore = [[LectureNetCore alloc] init];
+    }
+    if (_lecrureid != nil) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [_lectureNetCore requestBigLessonWithShare:@{@"userId":[UserInfoList loginUserId],@"lecrureId":_lecrureid,@"picurl":_detailModel.picurl,@"duration":_detailModel.duration,@"content":@"分享今日大课视频",@"subject":_detailModel.subject,@"grade":_detailModel.grade,@"visibleRange":@"G",@"addtimeB":_detailModel.addtime,@"titleB":_titleName}];
+        });
+    }
+}
+
+@end

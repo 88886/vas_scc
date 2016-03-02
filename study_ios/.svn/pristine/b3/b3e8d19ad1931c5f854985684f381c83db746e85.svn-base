@@ -1,0 +1,25 @@
+//
+//  LectureModel.h
+//  study
+//
+//  Created by apples on 15/8/31.
+//  Copyright (c) 2015年 jzkj. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+
+@interface LectureModel : NSObject
+
+@property (nonatomic,copy)NSString *lecrureid;
+@property (nonatomic,copy)NSString *picurl;
+@property (nonatomic,copy)NSString *duration;
+@property (nonatomic,copy)NSString *title;
+@property (nonatomic,copy)NSString *addTime;
+@property (nonatomic,copy)NSString *grade;
+@property (nonatomic,copy)NSString *subject;
+@property (nonatomic,copy)NSString *buycount;
+@property (nonatomic,copy)NSString *clickcount;
+@property (nonatomic,copy)NSString *collectcount;
+
+
+@end

@@ -1,0 +1,59 @@
+//
+//  MinePartnerCore.m
+//  study
+//
+//  Created by mijibao on 16/1/21.
+//  Copyright © 2016年 mijibao. All rights reserved.
+//
+
+#import "MinePartnerCore.h"
+#import "MinePartnerModel.h"
+#import "MinePartnerManager.h"
+
+@implementation MinePartnerCore
+
+//获取我的伙伴
+- (void)requestPartnerWithUserId:(NSString *)userId
+{
+    NSString *urlString = [NSString stringWithFormat:@"http://%@:%@/studyManager/usersAction/findMyFriendsByUID.action",[OperatePlist HTTPServerAddress], [OperatePlist HTTPServerPort]];
+    NSMutableDictionary *params = [[NSMutableDictionary alloc]init];
+    [params setObject:userId forKey:@"userID"];
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    manager.responseSerializer = [AFCompoundResponseSerializer serializer];
+    [manager POST:urlString parameters:params success:^(AFHTTPRequestOperation *operation, id result)
+     {
+         if (result)
+         {
+             NSString *requestResult = [[NSString alloc]initWithData:result encoding:NSUTF8StringEncoding];
+             if ([requestResult isEqualToString:@"0"]) {
+                 if ([self.delegate respondsToSelector:@selector(passRequstResult:infomation:)]) {
+                     [self.delegate passRequstResult:NO infomation:nil];
+                 }
+             }else{
+                 NSMutableArray *arr = [NSJSONSerialization JSONObjectWithData:result options:NSJSONReadingMutableContainers error:nil];
+                 NSMutableArray *resultArray = [[NSMutableArray alloc]init];
+                 for (NSDictionary *dic in arr) {
+                     MinePartnerModel *model = [[MinePartnerModel alloc]init];
+                     model.nickname = dic[@"nickname"];
+                     model.phone = dic[@"phone"];
+                     model.userId = [dic[@"userId"] integerValue];
+                     model.type = dic[@"type"];
+                     model.photo = dic[@"photo"];
+                    [[MinePartnerManager shareInstance]insertWithModel:model];
+                     [resultArray addObject:model];
+                 }
+                 if ([self.delegate respondsToSelector:@selector(passRequstResult:infomation:)]) {
+                     [self.delegate passRequstResult:YES infomation:resultArray];
+                 }
+             }
+         }
+     } failure:^(AFHTTPRequestOperation *operation, NSError *error)
+     {
+         if ([self.delegate respondsToSelector:@selector(passRequstResult:infomation:)]) {
+             [self.delegate passRequstResult:NO infomation:nil];
+         }
+     }];
+}
+
+
+@end

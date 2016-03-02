@@ -1,0 +1,31 @@
+//
+//  JZLSegmentControl.h
+//  study
+//  分段控制器
+//  Created by jiaozl on 15/8/28.
+//  Copyright (c) 2015年 jiaozl. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@class JZLSegmentControl;
+@protocol JZLSegmentControlDelegate <NSObject>
+
+- (void)segmentControl:(JZLSegmentControl *)segmentControl didselected:(NSString *)title isSelected:(BOOL)selected;
+
+@end
+
+@interface JZLSegmentControl: UIView
+
+@property (nonatomic, weak) UIButton *selectedButton;
+
+@property (nonatomic, assign) id <JZLSegmentControlDelegate> segmentDelegate;
+
+- (id)initWithFrame:(CGRect)frame titles:(NSArray *)itemArray;
+
+/// 设置标题
+- (void)setTitle:(NSString *)title withIndex:(NSInteger)index;
+
+- (NSString *)titleWithIndex:(NSInteger)index;
+
+@end
